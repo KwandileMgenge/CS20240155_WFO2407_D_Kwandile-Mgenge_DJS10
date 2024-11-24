@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
@@ -17,29 +15,40 @@ function App() {
 
   // Fetching posts asynchronously
   useEffect(() => {
-    const fetchPosts = async (): Promise<void> => {
-      try {
-        const response = await fetch("https://jsonplaceholder.typicode.com/posts");
-
+    fetch("https://jsonplaceholder.typicode.com/posts")
+      .then(response => {
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
         }
-
-        const data: Post[] = await response.json();
+        return response.json();
+      })
+      .then((data: Post[]) => {
         setPosts(data);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
         setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, []); // Empty dependency array ensures this runs once on mount
+      })
+      .catch((error: Error) => {
+        setError(error.message);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <>
-      
+      {loading && <p style={{ fontSize: '2em' }}>Loading posts...</p>}  {/* Show loading text while fetching */}
+      {error && <p style={{ color: 'red', fontSize: '2em' }}>{error}</p>}  {/* Display error if it occurs */}
+
+      {/* Display the posts if available */}
+      {posts.length > 0 && !loading && !error && (
+        <div>
+          <h1>Posts</h1>
+          {posts.map((post, index) => (
+            <div key={post.id} className="post">
+              <h2>{`${index + 1}. ${post.title}`}</h2>
+              <p>{post.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </>
   )
 }
